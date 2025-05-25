@@ -1,3 +1,5 @@
-     npx create-react-app todo-list-plus
-     cd todo-list-plus
-     npm install tailwindcss redux react-redux @reduxjs/toolkit react-query axios
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can add custom styles below if needed */
