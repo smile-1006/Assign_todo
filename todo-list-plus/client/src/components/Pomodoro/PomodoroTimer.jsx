@@ -1,62 +1,90 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const PomodoroTimer = () => {
-  const [secondsLeft, setSecondsLeft] = useState(25 * 60);
-  const [isActive, setIsActive] = useState(false);
-  const [isBreak, setIsBreak] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+  const [isWorkSession, setIsWorkSession] = useState(true);
+  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
+  const [alertSound, setAlertSound] = useState(true);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    if (isActive && secondsLeft > 0) {
-      timerRef.current = setTimeout(() => {
-        setSecondsLeft(secondsLeft - 1);
+    if (isRunning) {
+      timerRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev === 0) {
+            if (alertSound) {
+              new Audio('/alert.mp3').play();
+            }
+            setIsWorkSession((prevSession) => !prevSession);
+            return isWorkSession ? 5 * 60 : 25 * 60;
+          }
+          return prev - 1;
+        });
       }, 1000);
-    } else if (secondsLeft === 0) {
-      // Play sound alert
-      const audio = new Audio('/sounds/alert.mp3');
-      audio.play();
-      if (isBreak) {
-        setIsBreak(false);
-        setSecondsLeft(25 * 60);
-      } else {
-        setIsBreak(true);
-        setSecondsLeft(5 * 60);
-      }
+    } else if (!isRunning && timerRef.current) {
+      clearInterval(timerRef.current);
     }
-    return () => clearTimeout(timerRef.current);
-  }, [isActive, secondsLeft, isBreak]);
+    return () => clearInterval(timerRef.current);
+  }, [isRunning, isWorkSession, alertSound]);
 
-  const toggle = () => {
-    setIsActive(!isActive);
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
   };
 
-  const reset = () => {
-    setIsActive(false);
-    setSecondsLeft(isBreak ? 5 * 60 : 25 * 60);
-  };
-
-  const formatTime = (secs) => {
-    const minutes = Math.floor(secs / 60);
-    const seconds = secs % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  const toggleAlertSound = () => {
+    setAlertSound((prev) => !prev);
   };
 
   return (
-    <div className="p-4 bg-white rounded shadow text-center">
-      <h2 className="text-xl font-semibold mb-4">{isBreak ? 'Break' : 'Work'} Timer</h2>
-      <div className="text-5xl font-mono mb-4">{formatTime(secondsLeft)}</div>
-      <button
-        onClick={toggle}
-        className="px-4 py-2 bg-blue-600 text-white rounded mr-2 hover:bg-blue-700"
-      >
-        {isActive ? 'Pause' : 'Start'}
-      </button>
-      <button
-        onClick={reset}
-        className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-      >
-        Reset
-      </button>
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 max-w-sm mx-auto text-center">
+      <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
+        {isWorkSession ? 'Work Session' : 'Break'}
+      </h2>
+      <div className="text-6xl font-mono mb-6 text-gray-900 dark:text-white">{formatTime(timeLeft)}</div>
+      <div className="flex justify-center space-x-4 mb-4">
+        <button
+          onClick={() => setIsRunning(true)}
+          className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+        >
+          Start
+        </button>
+        <button
+          onClick={() => setIsRunning(false)}
+          className="bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600"
+        >
+          Pause
+        </button>
+        <button
+          onClick={() => {
+            setIsRunning(false);
+            setTimeLeft(isWorkSession ? 25 * 60 : 5 * 60);
+          }}
+          className="bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600"
+        >
+          Reset
+        </button>
+      </div>
+      <div>
+        <label className="inline-flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={alertSound}
+            onChange={toggleAlertSound}
+            className="form-checkbox h-5 w-5 text-indigo-600"
+          />
+          <span className="text-gray-900 dark:text-white">Alert Sound</span>
+        </label>
+      </div>
+      <div className="h-2 bg-gray-300 dark:bg-gray-700 rounded mt-6 overflow-hidden">
+        <div
+          className="h-full bg-red-500 transition-all duration-1000"
+          style={{ width: `${((isWorkSession ? 25 * 60 : 5 * 60) - timeLeft) / (isWorkSession ? 25 * 60 : 5 * 60) * 100}%` }}
+        />
+      </div>
     </div>
   );
 };

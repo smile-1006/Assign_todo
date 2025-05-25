@@ -11,41 +11,112 @@ import TaskModal from "./components/Tasks/TaskList";
 import PomodoroTimer from "./components/Pomodoro/PomodoroTimer";
 import Settings from "./components/Settings/Settings";
 import NotificationCenter from "./components/Notifications/NotificationCenter";
-
-// Optional: Dashboard wrapper to show main dashboard components
-const Dashboard = () => (
-  <div className="space-y-6">
-    <NotificationCenter />
-    <TaskList />
-    <Stats />
-    <PomodoroTimer />
-  </div>
-);
+import PrivateRoute from "./components/Auth/PrivateRoute";
+import SidebarMenu from "./components/SidebarMenu";
+import Dashboard from "./components/Dashboard/Dashboard";
 
 const App = () => {
   return (
     <Router>
-      <Routes>
-        {/* Auth */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+      <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+        <SidebarMenu />
+        <div className="flex-1 overflow-auto">
+          <NotificationCenter />
+          <Routes>
+            {/* Auth */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Dashboard & Main Features */}
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tasks" element={<TaskList />} />
-        <Route path="/tasks/:id" element={<TaskDetails />} />
-        <Route path="/task-modal" element={<TaskModal />} />
-        <Route path="/calendar" element={<CalendarView />} />
-        <Route path="/stats" element={<Stats />} />
-        <Route path="/pomodoro" element={<PomodoroTimer />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/notifications" element={<NotificationCenter />} />
+            {/* Dashboard & Main Features */}
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/today"
+              element={
+                <PrivateRoute>
+                  <TaskList />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/upcoming"
+              element={
+                <PrivateRoute>
+                  <div className="p-4 text-gray-900 dark:text-white">Upcoming Tasks</div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/completed"
+              element={
+                <PrivateRoute>
+                  <div className="p-4 text-gray-900 dark:text-white">Completed Tasks</div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/tags"
+              element={
+                <PrivateRoute>
+                  <div className="p-4 text-gray-900 dark:text-white">Tags</div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/calendar"
+              element={
+                <PrivateRoute>
+                  <CalendarView />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <PrivateRoute>
+                  <Stats />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <PrivateRoute>
+                  <Settings />
+                </PrivateRoute>
+              }
+            />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+            {/* Task Details */}
+            <Route
+              path="/tasks/:id"
+              element={
+                <PrivateRoute>
+                  <TaskDetails />
+                </PrivateRoute>
+              }
+            />
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </div>
+      </div>
     </Router>
   );
 };
