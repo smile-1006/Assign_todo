@@ -1,0 +1,1 @@
+       npm install react-router-dom redux @reduxjs/toolkit react-query tailwindcss
